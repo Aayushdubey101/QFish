@@ -73,7 +73,11 @@ async fn ws_handler(
 async fn handle_socket(mut socket: WebSocket, state: Arc<AppState>) {
     let mut rx = state.tx.subscribe();
     
-    if let Some(schema) = state.current_schema.lock().unwrap().clone() {
+    let initial_schema = {
+        state.current_schema.lock().unwrap().clone()
+    };
+
+    if let Some(schema) = initial_schema {
         if let Ok(json) = serde_json::to_string(&schema) {
             let _ = socket.send(Message::Text(axum::extract::ws::Utf8Bytes::from(json))).await;
         }
