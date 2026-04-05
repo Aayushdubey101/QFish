@@ -35,7 +35,6 @@ async def extract(req: ExtractionRequest):
                 ],
                 global_metrics={"corporate_tax_rate": 30.0, "recession_probability": 60.0}
             )
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/insights")
 async def get_insights(req: InsightRequest):

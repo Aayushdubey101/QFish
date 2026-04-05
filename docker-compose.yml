@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   python-brain:
     build:
@@ -14,8 +12,6 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
-    volumes:
-      - ./python-brain:/app
 
   rust-engine:
     build:
@@ -32,10 +28,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5173:5173"
-    environment:
-      - VITE_ENGINE_URL=http://localhost:8080
-      - VITE_BRAIN_URL=http://localhost:8000
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    command: npm run dev -- --host
+    depends_on:
+      - python-brain
+      - rust-engine
