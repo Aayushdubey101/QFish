@@ -1,0 +1,41 @@
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Python Brain
+python-brain/__pycache__/
+python-brain/.pytest_cache/
+python-brain/.venv/
+python-brain/venv/
+python-brain/env/
+python-brain/*.py[cod]
+
+# Rust Engine
+rust-engine/target/
+rust-engine/**/*.rs.bk
+
+# Frontend React/Vite
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.vite/
+frontend/*.log
+frontend/.eslintcache
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker
+docker-compose.override.yml
