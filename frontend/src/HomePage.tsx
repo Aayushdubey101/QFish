@@ -5,34 +5,17 @@ interface HomePageProps {
   onNavigate: (page: AppPage, documentText?: string) => void;
 }
 
-const ACCEPTED = ['.pdf', '.md', '.txt', '.markdown'];
+// PDF removed — FileReader.readAsText() produces garbled output for binary PDF files.
+// Support MD and TXT only. PDF support requires pdf.js (future task).
+const ACCEPTED = ['.md', '.txt', '.markdown'];
+const ACCEPTED_LABEL = 'MD · TXT';
 
 const STEPS = [
-  {
-    num: '01',
-    title: 'Upload Reality Seed',
-    desc: 'Any document — news, policy, research, novel. QFish reads it all.',
-  },
-  {
-    num: '02',
-    title: 'LLM Schema Extraction',
-    desc: 'Python brain calls your LLM to extract entities, relations, and metrics.',
-  },
-  {
-    num: '03',
-    title: 'Rust Engine Runs',
-    desc: 'Compiled simulation loop evolves 50 agents at sub-millisecond speed.',
-  },
-  {
-    num: '04',
-    title: 'Live Streaming Dashboard',
-    desc: 'WebSocket pushes real-time metric charts and stance distributions.',
-  },
-  {
-    num: '05',
-    title: 'AI Insight Report',
-    desc: 'LLM summarises what emerged — domain-aware, no templates.',
-  },
+  { num: '01', title: 'Upload Reality Seed', desc: 'Any text document — news, policy, research, novel.' },
+  { num: '02', title: 'LLM Schema Extraction', desc: 'Python brain calls your LLM to extract entities, relations, and metrics.' },
+  { num: '03', title: 'Rust Engine Runs', desc: 'Compiled simulation loop evolves agents at sub-millisecond speed.' },
+  { num: '04', title: 'Live Streaming Dashboard', desc: 'WebSocket pushes real-time metric charts and entity panels.' },
+  { num: '05', title: 'AI Insight Report', desc: 'LLM summarises what emerged — domain-aware, no templates.' },
 ];
 
 function readFileAsText(file: File): Promise<string> {
@@ -59,12 +42,15 @@ export function HomePage({ onNavigate }: HomePageProps) {
       const ext = '.' + f.name.split('.').pop()?.toLowerCase();
       return ACCEPTED.includes(ext);
     });
+    if (valid.length === 0) {
+      setError(`Only ${ACCEPTED_LABEL} files accepted.`);
+      return;
+    }
+    setError('');
     setFiles((prev) => [
       ...prev,
       ...valid.map((f) => ({ file: f, name: f.name, size: f.size, type: f.type })),
     ]);
-    if (valid.length === 0) setError('Only PDF, MD, and TXT files accepted.');
-    else setError('');
   }, []);
 
   const removeFile = (idx: number) => setFiles((prev) => prev.filter((_, i) => i !== idx));
@@ -80,15 +66,12 @@ export function HomePage({ onNavigate }: HomePageProps) {
     setLoading(true);
     setError('');
     try {
-      // Read all files and concatenate text
-      const texts: string[] = await Promise.all(files.map((f) => readFileAsText(f.file)));
+      const texts = await Promise.all(files.map((f) => readFileAsText(f.file)));
       const combined = texts.join('\n\n---\n\n');
-      // Prepend the user prompt so the LLM has full context
       const documentText = `USER GOAL: ${prompt}\n\n---\n\n${combined}`;
       onNavigate('configure', documentText);
-    } catch (e) {
+    } catch {
       setError('Failed to read file. Please try again.');
-    } finally {
       setLoading(false);
     }
   };
@@ -109,20 +92,22 @@ export function HomePage({ onNavigate }: HomePageProps) {
           target="_blank"
           rel="noreferrer"
           style={{
-            fontFamily: 'DM Mono, monospace', fontSize: 12, color: '#888',
+            fontFamily: 'DM Mono, monospace', fontSize: 11, color: '#555',
             textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6,
           }}
         >
-          Reference: MiroFish ↗
+          Based on MiroFish ↗
         </a>
       </nav>
 
       <div style={{ maxWidth: 1320, margin: '0 auto', padding: '64px 40px 80px' }}>
 
-        {/* Hero */}
-        <section style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 88, gap: 60 }}>
+        {/* ── Hero ── */}
+        <section style={{
+          display: 'flex', justifyContent: 'space-between',
+          alignItems: 'flex-start', marginBottom: 88, gap: 60,
+        }}>
           <div style={{ flex: 1 }}>
-            {/* Tag */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
               <span style={{
                 background: '#FF4500', color: '#fff',
@@ -131,12 +116,11 @@ export function HomePage({ onNavigate }: HomePageProps) {
               }}>
                 UNIVERSAL ENGINE
               </span>
-              <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: '#555', letterSpacing: '0.05em' }}>
+              <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: '#555' }}>
                 v0.1 · Rust + Python + React
               </span>
             </div>
 
-            {/* Title */}
             <h1 style={{
               fontFamily: 'Syne, sans-serif', fontWeight: 800,
               fontSize: 'clamp(2.8rem, 5vw, 5rem)', lineHeight: 1.05,
@@ -146,15 +130,15 @@ export function HomePage({ onNavigate }: HomePageProps) {
               <span style={{ color: '#FF4500' }}>From Any Document</span>
             </h1>
 
-            {/* Description */}
             <p style={{
               fontFamily: 'Inter, sans-serif', fontSize: 16,
               lineHeight: 1.8, color: '#666', maxWidth: 560, marginBottom: 48,
             }}>
-              QFish is a domain-agnostic multi-agent simulation engine.
-              Upload a real-world document — news article, policy draft, supply chain data,
-              clinical trial, or a novel — describe your prediction goal, and let{' '}
-              <span style={{ color: '#FAFAFA', fontWeight: 500 }}>50 autonomous agents</span> evolve
+              QFish is a domain-agnostic multi-agent simulation engine. Upload
+              any real-world document — news article, policy draft, supply chain
+              data, clinical trial, or a novel — describe your prediction goal,
+              and let{' '}
+              <span style={{ color: '#FAFAFA', fontWeight: 500 }}>autonomous agents</span> evolve
               inside a{' '}
               <span style={{ color: '#FF4500', fontFamily: 'DM Mono, monospace', fontSize: 14 }}>
                 Rust simulation loop
@@ -162,20 +146,16 @@ export function HomePage({ onNavigate }: HomePageProps) {
               while an LLM reads the results.
             </p>
 
-            {/* Stats row */}
             <div style={{ display: 'flex', gap: 0, borderTop: '1px solid #1E1E1E', paddingTop: 32 }}>
               {[
-                { val: '50', label: 'Agents per run' },
+                { val: '50+', label: 'Agents per run' },
                 { val: '<1ms', label: 'Tick latency' },
                 { val: '∞', label: 'Domains supported' },
               ].map((stat, i) => (
-                <div
-                  key={i}
-                  style={{
-                    paddingRight: 40, marginRight: 40,
-                    borderRight: i < 2 ? '1px solid #1E1E1E' : 'none',
-                  }}
-                >
+                <div key={i} style={{
+                  paddingRight: 40, marginRight: 40,
+                  borderRight: i < 2 ? '1px solid #1E1E1E' : 'none',
+                }}>
                   <div style={{
                     fontFamily: 'Syne, sans-serif', fontWeight: 700,
                     fontSize: 28, color: '#FAFAFA', marginBottom: 4,
@@ -191,22 +171,19 @@ export function HomePage({ onNavigate }: HomePageProps) {
           </div>
 
           {/* Steps sidebar */}
-          <div style={{
-            width: 320, flexShrink: 0,
-            border: '1px solid #1E1E1E', padding: 28,
-          }}>
+          <div style={{ width: 320, flexShrink: 0, border: '1px solid #1E1E1E', padding: 28 }}>
             <div style={{
               fontFamily: 'DM Mono, monospace', fontSize: 10, color: '#555',
-              letterSpacing: '0.1em', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8,
+              letterSpacing: '0.1em', marginBottom: 24,
             }}>
               ◇ WORKFLOW
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {STEPS.map((step) => (
-                <div key={step.num} style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+                <div key={step.num} style={{ display: 'flex', gap: 16 }}>
                   <span style={{
-                    fontFamily: 'DM Mono, monospace', fontWeight: 500,
-                    fontSize: 11, color: '#333', flexShrink: 0, paddingTop: 2,
+                    fontFamily: 'DM Mono, monospace', fontSize: 11,
+                    color: '#333', flexShrink: 0, paddingTop: 2,
                   }}>
                     {step.num}
                   </span>
@@ -227,29 +204,26 @@ export function HomePage({ onNavigate }: HomePageProps) {
           </div>
         </section>
 
-        {/* Console / Upload section */}
+        {/* ── Upload console ── */}
         <section style={{ borderTop: '1px solid #1E1E1E', paddingTop: 60, display: 'flex', gap: 60 }}>
-
-          {/* Left: label */}
           <div style={{ width: 280, flexShrink: 0 }}>
             <div style={{
-              fontFamily: 'DM Mono, monospace', fontSize: 10, color: '#555',
-              letterSpacing: '0.1em', marginBottom: 16,
+              fontFamily: 'DM Mono, monospace', fontSize: 10,
+              color: '#555', letterSpacing: '0.1em', marginBottom: 16,
             }}>
               ■ SYSTEM READY
             </div>
             <h2 style={{
               fontFamily: 'Syne, sans-serif', fontWeight: 700,
-              fontSize: 28, color: '#FAFAFA', marginBottom: 12, lineHeight: 1.2,
+              fontSize: 26, color: '#FAFAFA', marginBottom: 12, lineHeight: 1.2,
             }}>
               Launch Simulation
             </h2>
             <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#555', lineHeight: 1.6 }}>
-              Upload a reality seed document and describe what you want to predict. The engine handles the rest.
+              Upload a reality seed document and describe what you want to predict.
             </p>
           </div>
 
-          {/* Right: Console box */}
           <div style={{ flex: 1, border: '1px solid #1E1E1E', padding: 8 }}>
 
             {/* Upload zone */}
@@ -260,7 +234,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 color: '#555', marginBottom: 14, letterSpacing: '0.05em',
               }}>
                 <span>REALITY SEED</span>
-                <span>PDF · MD · TXT</span>
+                <span>{ACCEPTED_LABEL}</span>
               </div>
 
               <div
@@ -299,31 +273,24 @@ export function HomePage({ onNavigate }: HomePageProps) {
                       width: 36, height: 36, border: '1px solid #2a2a2a',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       margin: '0 auto 12px', color: '#555', fontSize: 18,
-                    }}>
-                      ↑
-                    </div>
+                    }}>↑</div>
                     <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#555', marginBottom: 4 }}>
                       Drop files here or click to browse
                     </div>
                     <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: '#333' }}>
-                      PDF · MD · TXT accepted
+                      {ACCEPTED_LABEL} accepted
                     </div>
                   </div>
                 ) : (
                   <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {files.map((f, i) => (
-                      <div
-                        key={i}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: 10,
-                          padding: '8px 12px',
-                          background: '#111', border: '1px solid #1E1E1E',
-                        }}
-                      >
+                      <div key={i} style={{
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        padding: '8px 12px', background: '#111', border: '1px solid #1E1E1E',
+                      }}>
                         <span style={{ color: '#FF4500', fontSize: 13 }}>◈</span>
                         <span style={{
-                          flex: 1, fontFamily: 'DM Mono, monospace',
-                          fontSize: 12, color: '#FAFAFA',
+                          flex: 1, fontFamily: 'DM Mono, monospace', fontSize: 12, color: '#FAFAFA',
                           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                         }}>
                           {f.name}
@@ -337,9 +304,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                             background: 'none', border: 'none', color: '#555',
                             cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: '0 2px',
                           }}
-                        >
-                          ×
-                        </button>
+                        >×</button>
                       </div>
                     ))}
                     <button
@@ -347,8 +312,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                       style={{
                         background: 'none', border: '1px dashed #2a2a2a',
                         color: '#555', fontFamily: 'DM Mono, monospace',
-                        fontSize: 11, padding: '8px', cursor: 'pointer',
-                        textAlign: 'center',
+                        fontSize: 11, padding: '8px', cursor: 'pointer', textAlign: 'center',
                       }}
                     >
                       + add more files
@@ -359,21 +323,16 @@ export function HomePage({ onNavigate }: HomePageProps) {
             </div>
 
             {/* Divider */}
-            <div style={{
-              display: 'flex', alignItems: 'center',
-              padding: '0 20px', height: 36,
-            }}>
+            <div style={{ display: 'flex', alignItems: 'center', padding: '0 20px', height: 36 }}>
               <div style={{ flex: 1, height: 1, background: '#1E1E1E' }} />
               <span style={{
                 padding: '0 14px', fontFamily: 'DM Mono, monospace',
                 fontSize: 9, color: '#444', letterSpacing: '0.1em',
-              }}>
-                INPUT PARAMETERS
-              </span>
+              }}>INPUT PARAMETERS</span>
               <div style={{ flex: 1, height: 1, background: '#1E1E1E' }} />
             </div>
 
-            {/* Prompt input */}
+            {/* Prompt */}
             <div style={{ padding: '0 20px 20px' }}>
               <div style={{
                 display: 'flex', justifyContent: 'space-between',
@@ -396,8 +355,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                     width: '100%', background: 'transparent', border: 'none',
                     padding: '16px 16px 40px',
                     fontFamily: 'DM Mono, monospace', fontSize: 13,
-                    color: '#FAFAFA', resize: 'vertical', outline: 'none',
-                    lineHeight: 1.6,
+                    color: '#FAFAFA', resize: 'vertical', outline: 'none', lineHeight: 1.6,
                   }}
                 />
                 <div style={{
@@ -409,7 +367,6 @@ export function HomePage({ onNavigate }: HomePageProps) {
               </div>
             </div>
 
-            {/* Error */}
             {error && (
               <div style={{
                 margin: '0 20px 12px',
@@ -421,7 +378,6 @@ export function HomePage({ onNavigate }: HomePageProps) {
               </div>
             )}
 
-            {/* Launch button */}
             <div style={{ padding: '0 20px 20px' }}>
               <button
                 onClick={handleStart}
@@ -435,7 +391,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   fontSize: 14, letterSpacing: '0.08em',
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   cursor: canSubmit ? 'pointer' : 'not-allowed',
-                  transition: 'all 0.2s',
+                  transition: 'background 0.2s',
                 }}
               >
                 <span>{loading ? 'READING DOCUMENT...' : 'LAUNCH SIMULATION'}</span>

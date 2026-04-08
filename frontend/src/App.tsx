@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import type { AppPage, SimulationSchema, MetricDataPoint } from './types';
 import { HomePage } from './HomePage';
 import { ConfigurePage } from './ConfigurePage';
@@ -12,18 +12,25 @@ export default function App() {
   const [insight, setInsight] = useState('');
   const [metricHistory, setMetricHistory] = useState<MetricDataPoint[]>([]);
 
-  const navigate = (target: AppPage, doc?: string) => {
+  const navigate = useCallback((target: AppPage, doc?: string) => {
     if (doc !== undefined) setDocumentText(doc);
     setPage(target);
-  };
+  }, []);
 
-  const handleSchemaReady = (s: SimulationSchema) => {
+  const handleSchemaReady = useCallback((s: SimulationSchema) => {
     setSchema(s);
-  };
+    setMetricHistory([]); // reset history for new simulation
+    setInsight('');
+  }, []);
 
-  const handleInsightReady = (i: string) => {
+  const handleInsightReady = useCallback((i: string) => {
     setInsight(i);
-  };
+  }, []);
+
+  // Called by SimulatePage so App holds the authoritative history for InsightsPage
+  const handleHistoryUpdate = useCallback((h: MetricDataPoint[]) => {
+    setMetricHistory(h);
+  }, []);
 
   if (page === 'home') {
     return <HomePage onNavigate={navigate} />;
@@ -45,6 +52,7 @@ export default function App() {
         schema={schema}
         onNavigate={navigate}
         onInsightReady={handleInsightReady}
+        onHistoryUpdate={handleHistoryUpdate}
       />
     );
   }
@@ -60,6 +68,5 @@ export default function App() {
     );
   }
 
-  // Fallback — no schema yet, go home
   return <HomePage onNavigate={navigate} />;
 }
